@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administración - San Gaspar</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #003366; --primary-light: #004d99; --accent: #0056b3;
+      --bg: #f4f6f9; --card-bg: #ffffff; --text: #2c3e50; --text-light: #6c757d;
+      --border: #ced4da; --shadow: 0 4px 12px rgba(0,0,0,0.08); --radius: 12px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+    
+    /* HEADER */
+    .app-header { background: var(--primary); color: white; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+    .app-header h1 { font-size: 1.4rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    .user-badge { background: rgba(255,255,255,0.15); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
+    .logout-btn { background: none; border: none; color: white; cursor: pointer; font-size: 1rem; margin-left: 6px; opacity: 0.8; transition: 0.2s; }
+    .logout-btn:hover { opacity: 1; transform: scale(1.1); }
+    
+    /* MAIN LAYOUT */
+    .main-container { flex: 1; display: flex; padding: 24px; gap: 24px; }
+    
+    /* SIDEBAR */
+    .sidebar { width: 240px; background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px 0; display: flex; flex-direction: column; }
+    .nav-item { padding: 14px 24px; display: flex; align-items: center; gap: 12px; color: var(--text-light); transition: 0.2s; border-left: 4px solid transparent; text-decoration: none; }
+    .nav-item:hover, .nav-item.active { background: #f8f9fa; color: var(--primary); border-left-color: var(--accent); }
+    .nav-item i { width: 20px; text-align: center; }
+    
+    /* CONTENT */
+    .content { flex: 1; display: flex; flex-direction: column; gap: 24px; overflow-y: auto; }
+    
+    /* MODULE HEADER */
+    .module-header { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white; padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); }
+    .module-header h2 { font-size: 1.3rem; margin-bottom: 4px; }
+    .module-header p { opacity: 0.9; font-size: 0.9rem; }
+    
+    /* ADMIN CARD */
+    .admin-card { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px; }
+    
+    /* FORMULARIO */
+    .form-group { margin-bottom: 16px; }
+    label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text); font-size: 0.95rem; }
+    input[type="text"], input[type="password"] { 
+      width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; 
+      font-size: 1rem; transition: border 0.2s; background: #fff; 
+    }
+    input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,86,179,0.15); }
+    
+    /* CHECKBOX GROUP */
+    .checkbox-group { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 8px; }
+    .checkbox-item { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+    .checkbox-item input { width: auto; margin: 0; }
+    
+    /* BOTONES */
+    .btn-group { display: grid; gap: 10px; margin-top: 20px; }
+    .btn { padding: 12px 20px; border: none; border-radius: var(--radius); cursor: pointer; font-weight: 600; transition: 0.2s; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem; }
+    .btn-save { background: var(--accent); }
+    .btn-cancel { background: #6c757d; }
+    .btn:hover { filter: brightness(1.05); }
+    .btn:active { transform: scale(0.98); }
+    
+    /* TABLA USUARIOS */
+    .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; min-width: 500px; margin-top: 10px; }
+    th, td { padding: 12px; border: 1px solid var(--border); text-align: left; font-size: 0.9rem; }
+    th { background: var(--bg); color: var(--text); font-weight: 600; }
+    .action-btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; color: white; font-size: 0.85rem; margin-right: 5px; }
+    .btn-edit { background: var(--accent); }
+    .btn-del { background: #dc3545; }
+    
+    /* MENSAJES */
+    .empty-msg { text-align: center; color: var(--text-light); padding: 20px; font-style: italic; }
+    .success-msg { background: #d4edda; color: #155724; padding: 12px; border-radius: 8px; margin-bottom: 16px; display: none; }
+    
+    /* FOOTER */
+    .app-footer { text-align: center; padding: 16px; color: var(--text-light); font-size: 0.8rem; border-top: 1px solid #eee; background: var(--card-bg); }
+    
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .main-container { flex-direction: column; padding: 16px; }
+      .sidebar { width: 100%; flex-direction: row; overflow-x: auto; padding: 10px 0; }
+      .nav-item { padding: 12px 16px; white-space: nowrap; border-left: none; border-bottom: 3px solid transparent; }
+      .nav-item:hover, .nav-item.active { border-left-color: transparent; border-bottom-color: var(--accent); }
+      .btn-group { grid-template-columns: 1fr; }
+      .btn { width: 100%; }
+      .checkbox-group { flex-direction: column; gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER (Unificado) -->
+  <header class="app-header">
+    <h1><i class="fas fa-building"></i> COOPERATIVA SAN GASPAR</h1>
+    <div class="user-badge">
+      <i class="fas fa-user-circle"></i> 
+      <span id="displayUser">Admin</span>
+      <button class="logout-btn" onclick="logout()" title="Cerrar Sesión"><i class="fas fa-sign-out-alt"></i></button>
+    </div>
+  </header>
+
+  <div class="main-container">
+    
+    <!-- SIDEBAR DINÁMICO -->
+    <nav class="sidebar" id="sidebar"></nav>
+
+    <!-- CONTENT -->
+    <main class="content">
+      
+      <!-- HEADER DEL MÓDULO -->
+      <div class="module-header">
+        <h2>⚙️ Panel de Administración</h2>
+        <p>Gestiona usuarios, contraseñas y permisos de módulos</p>
+      </div>
+
+      <!-- CONTENIDO PRINCIPAL -->
+      <div class="admin-card">
+        
+        <!-- Mensaje de éxito -->
+        <div id="successMsg" class="success-msg">✅ Usuario guardado correctamente</div>
+        
+        <!-- Formulario para Crear/Editar Usuario -->
+        <h3 style="margin-bottom: 16px; color: var(--primary);">Gestionar Usuario</h3>
+        <form id="userForm">
+          <input type="hidden" id="editMode" value="false">
+          <input type="hidden" id="oldUsername">
+          
+          <div class="form-group">
+            <label for="username">Nombre de Usuario *</label>
+            <input type="text" id="username" placeholder="Ej. juan.perez" required autocomplete="username">
+          </div>
+          
+          <div class="form-group">
+            <label for="password">Contraseña *</label>
+            <input type="password" id="password" placeholder="Nueva contraseña" required autocomplete="new-password">
+          </div>
+          
+          <div class="form-group">
+            <label>Módulos Permitidos</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item">
+                <input type="checkbox" id="mod_cotizador"> <span>Cotizador</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" id="mod_consentimiento"> <span>Consentimiento</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" id="mod_ahorros"> <span>Ahorros</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" id="mod_admin"> <span>Admin (Acceso Total)</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="btn-group">
+            <button type="submit" class="btn btn-save" id="btnSave">💾 Guardar Usuario</button>
+            <button type="button" class="btn btn-cancel" id="btnCancel" style="display:none;">❌ Cancelar</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Lista de Usuarios -->
+      <div class="admin-card">
+        <h3 style="margin-bottom: 16px; color: var(--primary);">Usuarios Existentes</h3>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Acceso</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="userList"></tbody>
+          </table>
+        </div>
+        <p id="noUsersMsg" class="empty-msg">No hay usuarios registrados aún.</p>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- FOOTER (Unificado) -->
+  <footer class="app-footer">
+    © 2026 Cooperativa San Gaspar | Panel de Aplicaciones
+  </footer>
+
+  <script>
+    // ==================== INICIALIZACIÓN ====================
+    if (!localStorage.getItem('users')) {
+      localStorage.setItem('users', JSON.stringify({ "admin": { pass: "admin123", modules: ["all"] } }));
+    }
+
+    // ==================== SEGURIDAD Y SESIÓN ====================
+    const currentUser = sessionStorage.getItem('currentUser');
+    if (!currentUser) { window.location.href = 'login.html'; }
+    
+    const users = JSON.parse(localStorage.getItem('users')) || {};
+    const userData = users[currentUser] || { modules: [] };
+    const myModules = userData.modules || [];
+    
+    document.getElementById('displayUser').textContent = currentUser.charAt(0).toUpperCase() + currentUser.slice(1);
+    
+    function logout() {
+      sessionStorage.removeItem('currentUser');
+      window.location.href = 'login.html';
+    }
+
+    // ==================== SIDEBAR DINÁMICO (CORREGIDO) ====================
+    function renderSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      if (!sidebar) { console.error('No se encontró el elemento sidebar'); return; }
+      
+      let html = `<a href="index.html" class="nav-item"><i class="fas fa-home"></i> Inicio</a>`;
+      
+      if (myModules.includes('all') || myModules.includes('cotizador')) {
+        html += `<a href="cotizador.html" class="nav-item"><i class="fas fa-calculator"></i> Cotizador</a>`;
+      }
+      
+      if (myModules.includes('all') || myModules.includes('consentimiento')) {
+        html += `<a href="consentimiento.html" class="nav-item"><i class="fas fa-file-contract"></i> Consentimiento</a>`;
+      }
+      
+      // 🔥 AGREGADO: Enlace de Ahorros en el sidebar
+      if (myModules.includes('all') || myModules.includes('ahorros')) {
+        html += `<a href="ahorros.html" class="nav-item"><i class="fas fa-piggy-bank"></i> Ahorros</a>`;
+      }
+      
+      if (myModules.includes('all')) {
+        html += `<a href="admin.html" class="nav-item active"><i class="fas fa-cogs"></i> Admin</a>`;
+      }
+      
+      sidebar.innerHTML = html;
+    }
+    renderSidebar();
+
+    // ==================== LÓGICA DE ADMINISTRACIÓN ====================
+    const userList = document.getElementById('userList');
+    const userForm = document.getElementById('userForm');
+    const successMsg = document.getElementById('successMsg');
+    const noUsersMsg = document.getElementById('noUsersMsg');
+
+    function renderUsers() {
+      userList.innerHTML = '';
+      let count = 0;
+      
+      Object.keys(users).forEach(user => {
+        if (user === 'admin') return;
+        count++;
+        
+        const u = users[user];
+        const modules = u.modules.includes('all') ? '<span style="color:var(--accent); font-weight:600;">Todos</span>' : u.modules.join(', ');
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${user}</strong></td>
+          <td>${modules}</td>
+          <td>
+            <button class="action-btn btn-edit" onclick="editUser('${user}')"><i class="fas fa-edit"></i> Editar</button>
+            <button class="action-btn btn-del" onclick="deleteUser('${user}')"><i class="fas fa-trash"></i> Eliminar</button>
+          </td>
+        `;
+        userList.appendChild(tr);
+      });
+      
+      noUsersMsg.style.display = count === 0 ? 'block' : 'none';
+    }
+
+    function editUser(username) {
+      const u = users[username];
+      
+      document.getElementById('editMode').value = 'true';
+      document.getElementById('oldUsername').value = username;
+      document.getElementById('username').value = username;
+      document.getElementById('password').value = '';
+      document.getElementById('password').placeholder = "Dejar vacío para mantener la actual";
+      document.getElementById('password').required = false;
+      
+      document.getElementById('mod_cotizador').checked = u.modules.includes('all') || u.modules.includes('cotizador');
+      document.getElementById('mod_consentimiento').checked = u.modules.includes('all') || u.modules.includes('consentimiento');
+      document.getElementById('mod_ahorros').checked = u.modules.includes('all') || u.modules.includes('ahorros');
+      document.getElementById('mod_admin').checked = u.modules.includes('all');
+
+      document.getElementById('btnSave').textContent = "🔄 Actualizar Usuario";
+      document.getElementById('btnCancel').style.display = 'flex';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function deleteUser(username) {
+      if (confirm(`¿Estás seguro de eliminar al usuario "${username}"?`)) {
+        delete users[username];
+        localStorage.setItem('users', JSON.stringify(users));
+        renderUsers();
+        alert('✅ Usuario eliminado correctamente.');
+      }
+    }
+
+    userForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value.trim().toLowerCase();
+      const passInput = document.getElementById('password').value;
+      const editMode = document.getElementById('editMode').value === 'true';
+      const oldUsername = document.getElementById('oldUsername').value;
+
+      if (!editMode && users[username]) { alert('❌ El usuario ya existe.'); return; }
+
+      const modules = [];
+      if (document.getElementById('mod_admin').checked) modules.push('all');
+      if (document.getElementById('mod_cotizador').checked) modules.push('cotizador');
+      if (document.getElementById('mod_consentimiento').checked) modules.push('consentimiento');
+      if (document.getElementById('mod_ahorros').checked) modules.push('ahorros'); // 🔥 AGREGADO
+
+      let newPass = passInput;
+      if (editMode && !passInput) { newPass = users[oldUsername].pass; }
+
+      if (editMode) delete users[oldUsername];
+      users[username] = { pass: newPass, modules: modules };
+      localStorage.setItem('users', JSON.stringify(users));
+      
+      successMsg.style.display = 'block';
+      setTimeout(() => { successMsg.style.display = 'none'; }, 3000);
+      
+      renderUsers();
+      userForm.reset();
+      document.getElementById('editMode').value = 'false';
+      document.getElementById('btnSave').textContent = "💾 Guardar Usuario";
+      document.getElementById('btnCancel').style.display = 'none';
+      document.getElementById('password').required = true;
+      document.getElementById('password').placeholder = "Nueva contraseña";
+    });
+
+    document.getElementById('btnCancel').addEventListener('click', () => {
+      userForm.reset();
+      document.getElementById('editMode').value = 'false';
+      document.getElementById('btnSave').textContent = "💾 Guardar Usuario";
+      document.getElementById('btnCancel').style.display = 'none';
+      document.getElementById('password').required = true;
+      document.getElementById('password').placeholder = "Nueva contraseña";
+    });
+
+    renderUsers();
+  </script>
+</body>
+</html>

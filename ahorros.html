@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ahorros - San Gaspar</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --primary: #003366; --primary-light: #004d99; --accent: #0056b3;
+      --bg: #f4f6f9; --card-bg: #ffffff; --text: #2c3e50; --text-light: #6c757d;
+      --shadow: 0 4px 12px rgba(0,0,0,0.08); --radius: 12px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+    
+    .app-header { background: var(--primary); color: white; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+    .app-header h1 { font-size: 1.4rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    .user-badge { background: rgba(255,255,255,0.15); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
+    .logout-btn { background: none; border: none; color: white; cursor: pointer; font-size: 1rem; margin-left: 6px; opacity: 0.8; transition: 0.2s; }
+    .logout-btn:hover { opacity: 1; transform: scale(1.1); }
+    
+    .main-container { flex: 1; display: flex; padding: 24px; gap: 24px; }
+    .sidebar { width: 240px; background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px 0; display: flex; flex-direction: column; }
+    .nav-item { padding: 14px 24px; display: flex; align-items: center; gap: 12px; color: var(--text-light); transition: 0.2s; border-left: 4px solid transparent; text-decoration: none; cursor: pointer; }
+    .nav-item:hover, .nav-item.active { background: #f8f9fa; color: var(--primary); border-left-color: var(--accent); }
+    .nav-item i { width: 20px; text-align: center; }
+    .content { flex: 1; display: flex; flex-direction: column; gap: 24px; overflow-y: auto; }
+    
+    .module-header { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white; padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); }
+    .module-header h2 { font-size: 1.3rem; margin-bottom: 4px; }
+    .module-header p { opacity: 0.9; font-size: 0.9rem; }
+    
+    .cotizador-card { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px; position: relative; overflow: hidden; }
+    
+    .watermark-text {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) rotate(-30deg);
+      opacity: 0.08; pointer-events: none; z-index: 1;
+      font-size: 3rem; font-weight: 900; color: var(--primary);
+      white-space: nowrap; user-select: none; text-transform: uppercase;
+      letter-spacing: 4px;
+    }
+    
+    .form-section { background: var(--primary); color: white; padding: 20px; border-radius: var(--radius); margin-bottom: 20px; position: relative; z-index: 2; }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; opacity: 0.95; }
+    
+    .field, .select {
+      width: 100%;
+      height: 48px;
+      padding: 0 16px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+      background: #fff;
+      color: var(--text);
+    }
+    .field:focus, .select:focus { box-shadow: 0 0 0 3px rgba(255,255,255,0.3); }
+    
+    .results-card { background: #f8f9fa; border-radius: var(--radius); padding: 20px; position: relative; z-index: 2; }
+    .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px; }
+    .result-item { background: white; padding: 16px; border-radius: 8px; border-left: 4px solid var(--accent); }
+    .result-label { font-size: 0.85rem; color: var(--text-light); margin-bottom: 4px; }
+    .result-value { font-size: 1.3rem; font-weight: 700; color: var(--primary); }
+    .result-value.isr { color: #dc3545; }
+    .result-value.neto { color: #28a745; font-size: 1.5rem; }
+    
+    .info-box {
+      background: #e8f4f8; border-left: 4px solid var(--accent);
+      padding: 12px; border-radius: 6px; margin-top: 16px;
+      font-size: 0.9rem; color: var(--text);
+    }
+    
+    .footer-text { text-align: center; font-size: 0.7rem; color: var(--text-light); margin-top: 16px; opacity: 0.7; position: relative; z-index: 2; }
+    
+    .acciones { margin-top: 20px; display: flex; justify-content: flex-end; position: relative; z-index: 2; }
+    .btn {
+      padding: 14px 24px; border: none; border-radius: var(--radius);
+      font-weight: 600; font-size: 1rem; color: white; cursor: pointer;
+      box-shadow: var(--shadow); transition: 0.2s; display: inline-flex;
+      align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-primary { background: var(--accent); }
+    .btn:hover { filter: brightness(1.05); transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    
+    .app-footer { text-align: center; padding: 16px; color: var(--text-light); font-size: 0.8rem; border-top: 1px solid #eee; background: var(--card-bg); }
+    
+    @media (max-width: 768px) {
+      .main-container { flex-direction: column; padding: 16px; }
+      .sidebar { width: 100%; flex-direction: row; overflow-x: auto; padding: 10px 0; }
+      .nav-item { padding: 12px 16px; white-space: nowrap; border-left: none; border-bottom: 3px solid transparent; }
+      .nav-item:hover, .nav-item.active { border-left-color: transparent; border-bottom-color: var(--accent); }
+      .result-grid { grid-template-columns: 1fr; }
+      .watermark-text { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <h1><i class="fas fa-building"></i> COOPERATIVA SAN GASPAR</h1>
+    <div class="user-badge">
+      <i class="fas fa-user-circle"></i> 
+      <span id="displayUser">Usuario</span>
+      <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <nav class="sidebar" id="sidebar"></nav>
+
+    <main class="content">
+      <div class="module-header">
+        <h2>💰 Cotizador de Ahorros</h2>
+        <p>Calcula rendimientos de todos nuestros productos de ahorro</p>
+      </div>
+
+      <div id="areaCompartir" class="cotizador-card">
+        <div class="watermark-text">SAN GASPAR</div>
+        
+        <div class="form-section">
+          <div class="form-group">
+            <label for="producto">TIPO DE AHORRO</label>
+            <select id="producto" onchange="cambiarProducto()" class="select">
+              <option value="">Seleccione un producto...</option>
+              <option value="corriente">Ahorro Corriente (7% anual)</option>
+              <option value="infanto">Ahorro Infanto Juvenil (7% anual)</option>
+              <option value="programado">Ahorro Programado (Capitalizable)</option>
+              <option value="plazofijo">Ahorro a Plazo Fijo</option>
+              <option value="plazofijo_pref">Ahorro a Plazo Fijo Preferencial</option>
+              <option value="inversion_f1">Inversiones entre Cooperativas F.I</option>
+              <option value="inversion_f2">Inversiones entre Cooperativas F.II</option>
+            </select>
+          </div>
+          <div id="camposDinamicos"></div>
+        </div>
+
+        <div class="results-card" id="resultados" style="display:none;">
+          <h3 style="color:var(--primary); margin-bottom:12px;">📊 Proyección de Ahorros</h3>
+          <div class="result-grid" id="resultGrid"></div>
+          <div class="info-box" id="infoBox"></div>
+        </div>
+
+        <div class="footer-text">COTIZADOR DE AHORROS - SAN GASPAR</div>
+      </div>
+
+      <div class="acciones">
+        <button class="btn btn-primary" onclick="compartir()">📤 Compartir</button>
+      </div>
+    </main>
+  </div>
+
+  <footer class="app-footer">© 2026 Cooperativa San Gaspar | Panel de Aplicaciones</footer>
+
+  <script>
+    // ==================== INICIALIZACIÓN ====================
+    let currentUser, users, myModules;
+    
+    currentUser = sessionStorage.getItem('currentUser');
+    if (!currentUser) { window.location.href = 'login.html'; }
+    
+    users = JSON.parse(localStorage.getItem('users')) || {};
+    myModules = (users[currentUser] || { modules: [] }).modules || [];
+    
+    document.getElementById('displayUser').textContent = currentUser.charAt(0).toUpperCase() + currentUser.slice(1);
+    
+    function logout() {
+      sessionStorage.removeItem('currentUser');
+      window.location.href = 'login.html';
+    }
+
+    // ==================== SIDEBAR ====================
+    function renderSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      if (!sidebar) return;
+      
+      let html = `<a href="index.html" class="nav-item"><i class="fas fa-home"></i> Inicio</a>`;
+      
+      if (myModules.includes('all') || myModules.includes('cotizador')) {
+        html += `<a href="cotizador.html" class="nav-item"><i class="fas fa-calculator"></i> Cotizador</a>`;
+      }
+      
+      if (myModules.includes('all') || myModules.includes('consentimiento')) {
+        html += `<a href="consentimiento.html" class="nav-item"><i class="fas fa-file-contract"></i> Consentimiento</a>`;
+      }
+      
+      if (myModules.includes('all') || myModules.includes('ahorros')) {
+        html += `<a href="ahorros.html" class="nav-item active"><i class="fas fa-piggy-bank"></i> Ahorros</a>`;
+      }
+      
+      if (myModules.includes('all')) {
+        html += `<a href="admin.html" class="nav-item"><i class="fas fa-cogs"></i> Admin</a>`;
+      }
+      
+      sidebar.innerHTML = html;
+    }
+    
+    renderSidebar();
+
+    // ==================== CONFIGURACIÓN DE PRODUCTOS ====================
+    const productos = {
+      corriente: { tasa: 7, min: 100 },
+      infanto: { tasa: 7, min: 100 },
+      programado: { plazos: { 12: 8, 24: 8.5, 36: 9, 48: 10 }, min: 200 },
+      plazofijo: {
+        min: 1000,
+        rangos: [
+          { desde: 1000, hasta: 99999.99, tasas: { 6: 6, 12: 14, 24: 'NA' } },
+          { desde: 100000, hasta: 1999999.99, tasas: { 6: 7, 12: 14, 24: 15 } },
+          { desde: 2000000, hasta: Infinity, tasas: { 6: 7, 12: 15, 24: 16 } }
+        ]
+      },
+      plazofijo_pref: {
+        min: 50000,
+        rangos: [
+          { desde: 50000, hasta: 99999.99, tasas: { 6: 5.5, 12: 13, 24: 'NA' } },
+          { desde: 100000, hasta: 1999999.99, tasas: { 6: 6, 12: 13, 24: 14 } },
+          { desde: 2000000, hasta: Infinity, tasas: { 6: 6.5, 12: 14, 24: 15 } }
+        ]
+      },
+      inversion_f1: { min: 1000000, tasa: 10.5 },
+      inversion_f2: { min: 1000000, tasa: 10 }
+    };
+
+    // ==================== FORMATO MONEDA CORREGIDO ====================
+    function limpiar(valor) {
+      if (!valor) return '';
+      return String(valor).replace(/Q/gi, "").replace(/,/g, "").trim();
+    }
+
+    function formato(valor) {
+      if (!valor || isNaN(valor)) return "Q 0.00";
+      return "Q " + Number(valor).toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    // Función para configurar inputs de montos
+    function configurarInputMonto(inputId, minValue = 0) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      
+      let rawValue = '';
+      
+      input.addEventListener('input', function(e) {
+        // Guardar posición del cursor
+        const cursorPos = this.selectionStart;
+        
+        // Obtener solo números y punto decimal
+        let valor = this.value;
+        let numeros = valor.replace(/[^0-9.]/g, '');
+        
+        // Prevenir múltiples puntos decimales
+        let partes = numeros.split('.');
+        if (partes.length > 2) {
+          numeros = partes[0] + '.' + partes.slice(1).join('');
+        }
+        
+        // Limitar a 2 decimales
+        if (partes.length === 2 && partes[1].length > 2) {
+          numeros = partes[0] + '.' + partes[1].substring(0, 2);
+        }
+        
+        rawValue = numeros;
+        this.dataset.raw = numeros;
+        this.value = numeros;
+        
+        // Restaurar cursor
+        const nuevaPos = cursorPos + (this.value.length - valor.length);
+        this.setSelectionRange(Math.max(0, nuevaPos), Math.max(0, nuevaPos));
+      });
+      
+      input.addEventListener('blur', function() {
+        if (rawValue && rawValue !== '') {
+          let numero = parseFloat(rawValue);
+          if (!isNaN(numero)) {
+            this.value = formato(numero);
+            this.dataset.raw = numero.toString();
+          }
+        } else {
+          this.value = '';
+          this.dataset.raw = '';
+        }
+        calcular();
+      });
+      
+      input.addEventListener('focus', function() {
+        if (this.dataset.raw && this.dataset.raw !== '') {
+          this.value = this.dataset.raw;
+        } else {
+          this.value = '';
+        }
+      });
+      
+      return input;
+    }
+
+    // ==================== CAMBIAR PRODUCTO ====================
+    function cambiarProducto() {
+      const producto = document.getElementById('producto').value;
+      const contenedor = document.getElementById('camposDinamicos');
+      const resultados = document.getElementById('resultados');
+      
+      contenedor.innerHTML = '';
+      resultados.style.display = 'none';
+
+      if (!producto) return;
+
+      // Campo monto para productos básicos
+      if (['corriente', 'infanto', 'plazofijo', 'plazofijo_pref', 'inversion_f1', 'inversion_f2'].includes(producto)) {
+        const min = productos[producto].min || 0;
+        const minTexto = formato(min);
+        
+        contenedor.innerHTML = `
+          <div class="form-group">
+            <label for="monto">MONTO A INVERTIR</label>
+            <input type="text" id="monto" class="field" inputmode="decimal" 
+                   placeholder="Ej: 1000" 
+                   data-min="${min}">
+            <small style="opacity:0.8; margin-top:5px; display:block; color:white;">Mínimo: ${minTexto}</small>
+          </div>
+        `;
+        
+        // Configurar el input de monto
+        configurarInputMonto('monto', min);
+      }
+
+      // Plazo para plazos fijos
+      if (['plazofijo', 'plazofijo_pref'].includes(producto)) {
+        const divPlazo = document.createElement('div');
+        divPlazo.className = 'form-group';
+        divPlazo.innerHTML = `
+          <label for="plazo">PLAZO (MESES)</label>
+          <select id="plazo" class="select" onchange="calcular()">
+            <option value="6">6 MESES</option>
+            <option value="12">12 MESES</option>
+            <option value="24">24 MESES</option>
+          </select>
+        `;
+        contenedor.appendChild(divPlazo);
+      }
+
+      // Producto programado
+      if (producto === 'programado') {
+        contenedor.innerHTML = `
+          <div class="form-group">
+            <label for="cuota">CUOTA MENSUAL</label>
+            <input type="text" id="cuota" class="field" inputmode="decimal" 
+                   placeholder="Ej: 500" 
+                   data-min="200">
+            <small style="opacity:0.8; margin-top:5px; display:block; color:white;">Mínimo: Q 200.00</small>
+          </div>
+          <div class="form-group">
+            <label for="plazo_prog">PLAZO (MESES)</label>
+            <select id="plazo_prog" class="select" onchange="calcular()">
+              <option value="12">12 MESES (8%)</option>
+              <option value="24">24 MESES (8.5%)</option>
+              <option value="36">36 MESES (9%)</option>
+              <option value="48">48 MESES (10%)</option>
+            </select>
+          </div>
+        `;
+        
+        // Configurar input de cuota
+        configurarInputMonto('cuota', 200);
+      }
+
+      // Inversiones
+      if (['inversion_f1', 'inversion_f2'].includes(producto)) {
+        const divPlazo = document.createElement('div');
+        divPlazo.className = 'form-group';
+        divPlazo.innerHTML = `
+          <label for="plazo_inv">PLAZO (MESES)</label>
+          <select id="plazo_inv" class="select" onchange="calcular()">
+            <option value="12">12 MESES</option>
+          </select>
+        `;
+        contenedor.appendChild(divPlazo);
+      }
+    }
+
+    // ==================== CÁLCULO ====================
+    function calcular() {
+      const producto = document.getElementById('producto').value;
+      if (!producto) return;
+
+      let resultado = {};
+      const ISR = 0.10;
+
+      try {
+        switch(producto) {
+          case 'corriente':
+          case 'infanto': {
+            const montoInput = document.getElementById('monto');
+            if (!montoInput) return;
+            const montoRaw = parseFloat(montoInput.dataset.raw) || 0;
+            const min = parseFloat(montoInput.dataset.min) || 0;
+            if (montoRaw < min) return;
+            
+            const tasa = productos[producto].tasa;
+            const interesAnualBruto = montoRaw * (tasa / 100);
+            const interesTrimestralBruto = interesAnualBruto / 4;
+            const isrAnual = interesAnualBruto * ISR;
+            const isrTrimestral = isrAnual / 4;
+            
+            resultado = {
+              monto: montoRaw, tasa: tasa,
+              interesAnualBruto, interesTrimestralBruto, isrAnual, isrTrimestral,
+              interesAnualNeto: interesAnualBruto - isrAnual,
+              interesTrimestralNeto: interesTrimestralBruto - isrTrimestral,
+              totalAnual: montoRaw + (interesAnualBruto - isrAnual),
+              nota: `Intereses se acreditan trimestralmente • Retención ISR 10%`
+            };
+            break;
+          }
+
+          case 'programado': {
+            const cuotaInput = document.getElementById('cuota');
+            if (!cuotaInput) return;
+            const cuotaRaw = parseFloat(cuotaInput.dataset.raw) || 0;
+            const plazo = parseInt(document.getElementById('plazo_prog').value);
+            if (cuotaRaw < 200) return;
+            
+            const tasaProg = productos.programado.plazos[plazo] / 100;
+            const totalAportado = cuotaRaw * plazo;
+            const i = tasaProg / 12;
+            const valorFuturo = cuotaRaw * ((Math.pow(1 + i, plazo) - 1) / i);
+            const interesesBrutos = valorFuturo - totalAportado;
+            const isr = interesesBrutos * ISR;
+            
+            resultado = {
+              totalAportado, interesesBrutos, isr,
+              interesesNetos: interesesBrutos - isr,
+              total: valorFuturo - isr,
+              nota: `Capitalización mensual • Tasa: ${tasaProg*100}% anual • ISR 10%`
+            };
+            break;
+          }
+
+          case 'plazofijo':
+          case 'plazofijo_pref': {
+            const montoInput = document.getElementById('monto');
+            if (!montoInput) return;
+            const montoPF = parseFloat(montoInput.dataset.raw) || 0;
+            const plazoPF = parseInt(document.getElementById('plazo').value);
+            
+            let tasaEncontrada = 0;
+            for (let rango of productos[producto].rangos) {
+              if (montoPF >= rango.desde && montoPF <= rango.hasta) {
+                tasaEncontrada = rango.tasas[plazoPF];
+                break;
+              }
+            }
+            if (tasaEncontrada === 'NA' || tasaEncontrada === 0) return;
+            
+            const interesBruto = montoPF * (tasaEncontrada / 100) * (plazoPF / 12);
+            const isrPF = interesBruto * ISR;
+            
+            resultado = {
+              monto: montoPF, plazo: plazoPF, tasa: tasaEncontrada,
+              interesBruto, isr: isrPF, interesNeto: interesBruto - isrPF,
+              total: montoPF + (interesBruto - isrPF),
+              nota: `Tasa: ${tasaEncontrada}% anual • ISR 10%`
+            };
+            break;
+          }
+
+          case 'inversion_f1':
+          case 'inversion_f2': {
+            const montoInput = document.getElementById('monto');
+            if (!montoInput) return;
+            const montoInv = parseFloat(montoInput.dataset.raw) || 0;
+            const minInv = productos[producto].min;
+            if (montoInv < minInv) return;
+            
+            const tasaInv = productos[producto].tasa;
+            const interesBrutoInv = montoInv * (tasaInv / 100);
+            const isrInv = interesBrutoInv * ISR;
+            
+            resultado = {
+              monto: montoInv, tasa: tasaInv,
+              interesBruto: interesBrutoInv, isr: isrInv,
+              interesNeto: interesBrutoInv - isrInv,
+              total: montoInv + (interesBrutoInv - isrInv),
+              nota: `Tasa: ${tasaInv}% anual • ISR 10%`
+            };
+            break;
+          }
+        }
+
+        mostrarResultados(resultado, producto);
+      } catch (error) {
+        console.error('Error en cálculo:', error);
+      }
+    }
+
+    // ==================== MOSTRAR RESULTADOS ====================
+    function mostrarResultados(r, producto) {
+      const grid = document.getElementById('resultGrid');
+      const infoBox = document.getElementById('infoBox');
+      const resultados = document.getElementById('resultados');
+      
+      let html = '';
+      
+      if (producto === 'programado') {
+        html += `<div class="result-item"><div class="result-label">Total Aportado</div><div class="result-value">${formato(r.totalAportado)}</div></div>`;
+      } else if (r.monto) {
+        html += `<div class="result-item"><div class="result-label">Monto Invertido</div><div class="result-value">${formato(r.monto)}</div></div>`;
+      }
+      
+      if (r.tasa) {
+        html += `<div class="result-item"><div class="result-label">Tasa Anual</div><div class="result-value">${r.tasa}%</div></div>`;
+      }
+      
+      if (['corriente', 'infanto'].includes(producto)) {
+        html += `
+          <div class="result-item"><div class="result-label">Interés Trimestral Bruto</div><div class="result-value">${formato(r.interesTrimestralBruto)}</div></div>
+          <div class="result-item"><div class="result-label">Retención ISR (Trimestral)</div><div class="result-value isr">- ${formato(r.isrTrimestral)}</div></div>
+          <div class="result-item"><div class="result-label">💰 A recibir cada 3 meses</div><div class="result-value neto">${formato(r.interesTrimestralNeto)}</div></div>
+          <div class="result-item"><div class="result-label">Interés Anual Bruto</div><div class="result-value">${formato(r.interesAnualBruto)}</div></div>
+          <div class="result-item"><div class="result-label">Retención ISR (Anual)</div><div class="result-value isr">- ${formato(r.isrAnual)}</div></div>
+          <div class="result-item"><div class="result-label">💰 Interés Neto Anual</div><div class="result-value neto">${formato(r.interesAnualNeto)}</div></div>
+          <div class="result-item" style="grid-column: 1 / -1; background: var(--primary); color: white;"><div class="result-label" style="color: rgba(255,255,255,0.9)">TOTAL AL AÑO</div><div class="result-value neto" style="color: white; font-size: 1.8rem">${formato(r.totalAnual)}</div></div>
+        `;
+      } else if (producto === 'programado') {
+        html += `
+          <div class="result-item"><div class="result-label">Intereses Generados</div><div class="result-value">${formato(r.interesesBrutos)}</div></div>
+          <div class="result-item"><div class="result-label">Retención ISR (10%)</div><div class="result-value isr">- ${formato(r.isr)}</div></div>
+          <div class="result-item"><div class="result-label">Intereses Netos</div><div class="result-value neto">${formato(r.interesesNetos)}</div></div>
+          <div class="result-item" style="grid-column: 1 / -1; background: var(--primary); color: white;"><div class="result-label" style="color: rgba(255,255,255,0.9)">MONTO FINAL</div><div class="result-value neto" style="color: white; font-size: 1.8rem">${formato(r.total)}</div></div>
+        `;
+      } else {
+        html += `
+          <div class="result-item"><div class="result-label">Interés Bruto</div><div class="result-value">${formato(r.interesBruto)}</div></div>
+          <div class="result-item"><div class="result-label">Retención ISR (10%)</div><div class="result-value isr">- ${formato(r.isr)}</div></div>
+          <div class="result-item"><div class="result-label">Interés Neto</div><div class="result-value neto">${formato(r.interesNeto)}</div></div>
+          <div class="result-item" style="grid-column: 1 / -1; background: var(--primary); color: white;"><div class="result-label" style="color: rgba(255,255,255,0.9)">TOTAL AL VENCIMIENTO</div><div class="result-value neto" style="color: white; font-size: 1.8rem">${formato(r.total)}</div></div>
+        `;
+      }
+      
+      grid.innerHTML = html;
+      infoBox.innerHTML = `<strong>ℹ️ ${r.nota}</strong>`;
+      resultados.style.display = 'block';
+    }
+
+    // ==================== COMPARTIR ====================
+    async function compartir() {
+      const area = document.getElementById('areaCompartir');
+      const btn = document.querySelector('.btn-primary');
+      const originalText = btn.innerHTML;
+      
+      btn.innerHTML = '⏳ Generando...'; 
+      btn.disabled = true;
+      
+      try {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        const canvas = await html2canvas(area, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
+        
+        canvas.toBlob(blob => {
+          const link = document.createElement('a');
+          link.download = 'Cotizacion-Ahorros.png';
+          link.href = URL.createObjectURL(blob);
+          link.click();
+          URL.revokeObjectURL(link.href);
+          btn.innerHTML = '✅ ¡Listo!';
+          setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
+        });
+      } catch (error) {
+        console.error(error);
+        btn.innerHTML = '❌ Error';
+        setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
+      }
+    }
+  </script>
+</body>
+</html>

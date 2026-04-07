@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar Sesión - Cooperativa San Gaspar</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root { --primary: #003366; --accent: #0056b3; --bg: #f4f6f9; --card: #fff; --shadow: 0 4px 15px rgba(0,0,0,0.1); --radius: 12px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+    .login-card { background: var(--card); padding: 40px; border-radius: var(--radius); box-shadow: var(--shadow); width: 100%; max-width: 400px; text-align: center; }
+    .logo { max-width: 140px; margin-bottom: 20px; }
+    h2 { color: var(--primary); margin-bottom: 24px; }
+    .input-group { margin-bottom: 16px; text-align: left; }
+    label { display: block; margin-bottom: 6px; font-weight: 600; color: #555; font-size: 0.9rem; }
+    input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; transition: 0.2s; }
+    input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,86,179,0.15); }
+    .btn-login { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+    .btn-login:hover { background: var(--accent); }
+    .error-msg { color: #dc3545; font-size: 0.85rem; margin-top: 12px; display: none; }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <img src="logo.png" alt="Logo" class="logo" onerror="this.style.display='none'">
+    <h2>Iniciar Sesión</h2>
+    <form id="loginForm">
+      <div class="input-group">
+        <label for="username">Usuario</label>
+        <input type="text" id="username" placeholder="Ingresa tu usuario" required autocomplete="username">
+      </div>
+      <div class="input-group">
+        <label for="password">Contraseña</label>
+        <input type="password" id="password" placeholder="Ingresa tu contraseña" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn-login">Entrar</button>
+      <p class="error-msg" id="errorMsg">Usuario o contraseña incorrectos</p>
+    </form>
+  </div>
+
+  <script>
+    // 1. Crear usuario Admin por defecto si es la primera vez
+    if (!localStorage.getItem('users')) {
+      localStorage.setItem('users', JSON.stringify({ "admin": { pass: "admin123", modules: ["all"] } }));
+    }
+
+    const users = JSON.parse(localStorage.getItem('users'));
+
+    // 2. Manejar envío del formulario
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const user = document.getElementById('username').value.trim().toLowerCase();
+      const pass = document.getElementById('password').value;
+      const errorMsg = document.getElementById('errorMsg');
+
+      if (users[user] && users[user].pass === pass) {
+        sessionStorage.setItem('currentUser', user);
+        window.location.href = 'index.html';
+      } else {
+        errorMsg.textContent = "Usuario o contraseña incorrectos";
+        errorMsg.style.display = 'block';
+        document.getElementById('password').value = '';
+      }
+    });
+  </script>
+</body>
+</html>
