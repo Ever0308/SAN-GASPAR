@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f4c81">
+  <title>COTIZADOR SG | Créditos y Ahorros</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(145deg, #e9f0f9 0%, #dde5f0 100%);
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
+      padding: 1.5rem;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .app-wrapper {
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* Menú de navegación */
+    .nav-menu {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .nav-btn {
+      background: white;
+      border: none;
+      padding: 0.9rem 2rem;
+      border-radius: 3rem;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      color: #0f4c81;
+      border: 2px solid transparent;
+    }
+
+    .nav-btn.active {
+      background: #0f4c81;
+      color: white;
+      box-shadow: 0 6px 14px rgba(15, 76, 129, 0.3);
+    }
+
+    .nav-btn:hover:not(.active) {
+      background: #e0e7ff;
+      transform: translateY(-2px);
+    }
+
+    /* Contenedores de cada módulo */
+    .module {
+      display: none;
+    }
+
+    .module.active-module {
+      display: block;
+    }
+
+    /* Estilos compartidos */
+    #areaCompartirCreditos, #areaCompartirAhorros {
+      background: #ffffff;
+      border-radius: 2rem;
+      box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0,0,0,0.05);
+      overflow: hidden;
+    }
+
+    .header-modern {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.5rem 2rem 0.75rem 2rem;
+      flex-wrap: wrap;
+      background: white;
+      border-bottom: 1px solid #eef2fa;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .logo {
+      width: 58px;
+      height: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    .header-modern h1 {
+      font-size: 1.7rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #0f4c81 0%, #1e6aa5 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      letter-spacing: -0.3px;
+    }
+
+    /* Formularios */
+    .card-form-modern {
+      background: #10436f;
+      margin: 1.5rem 1.8rem;
+      padding: 1.5rem 1.8rem;
+      border-radius: 1.8rem;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-form-ahorros {
+      background: #065f46;
+    }
+
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      align-items: flex-end;
+    }
+
+    .input-group {
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .card-form-modern label {
+      display: block;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 0.5rem;
+    }
+
+    .field-modern, .select-modern {
+      width: 100%;
+      padding: 0.9rem 1rem;
+      border-radius: 1.2rem;
+      border: none;
+      background: white;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #0a2b44;
+      outline: none;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .field-modern:focus, .select-modern:focus {
+      box-shadow: 0 0 0 3px rgba(255,215,0,0.5);
+      transform: scale(1.01);
+    }
+
+    /* Botón generar */
+    .btn-generar {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 0.9rem 2rem;
+      border-radius: 3rem;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.2s ease;
+      font-size: 1rem;
+    }
+
+    .btn-generar:hover {
+      background: #218838;
+      transform: translateY(-2px);
+    }
+
+    .btn-imprimir {
+      background: #0056b3;
+      color: white;
+      border: none;
+      padding: 0.9rem 2rem;
+      border-radius: 3rem;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 1rem;
+      transition: all 0.2s ease;
+      font-size: 1rem;
+    }
+
+    .btn-imprimir:hover {
+      background: #004099;
+      transform: translateY(-2px);
+    }
+
+    /* Tablas */
+    .table-container {
+      padding: 0 1.8rem 1.8rem 1.8rem;
+      overflow-x: auto;
+      width: 100%;
+    }
+
+    .financing-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: white;
+      border-radius: 1.4rem;
+      overflow: hidden;
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.03);
+      font-size: 0.9rem;
+    }
+
+    .financing-table thead tr {
+      background: #10436f;
+    }
+
+    .financing-table th {
+      text-align: center;
+      padding: 1rem;
+      font-weight: 700;
+      color: white;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+    }
+
+    .financing-table td {
+      padding: 1rem;
+      border-bottom: 1px solid #eff3f8;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .financing-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .financing-table tr:hover td {
+      background-color: #fafcff;
+    }
+
+    /* Colores créditos */
+    .col-plazo { color: #0f4c81; font-weight: 700; }
+    .col-cuota { color: #059669; font-weight: 800; }
+    .col-interes { color: #ea580c; font-weight: 600; }
+    .col-total { color: #7c3aed; font-weight: 800; }
+
+    /* Colores ahorros */
+    .col-plazo-ahorro { color: #065f46; font-weight: 700; }
+    .col-monto-ahorro { color: #059669; font-weight: 800; }
+    .col-interes-ahorro { color: #d97706; font-weight: 600; }
+    .col-total-ahorro { color: #7c3aed; font-weight: 800; }
+
+    /* Tabla de calendario */
+    .tabla-calendario {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 0.85rem;
+    }
+
+    .tabla-calendario th {
+      background: #10436f;
+      color: white;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .tabla-calendario td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+
+    .tabla-calendario tr:nth-child(even) {
+      background: #f8f9fa;
+    }
+
+    .footer-text {
+      text-align: center;
+      font-size: 0.7rem;
+      color: #6c86a3;
+      background: #f9fbfe;
+      padding: 1rem 1.5rem;
+      border-top: 1px solid #eef2fa;
+      font-weight: 500;
+    }
+
+    .info-box {
+      background: #e3f2fd;
+      border-left: 4px solid #0056b3;
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 16px;
+      font-size: 0.9rem;
+      color: #2c3e50;
+    }
+
+    .info-box.error {
+      background: #f8d7da;
+      border-left-color: #dc3545;
+      color: #721c24;
+    }
+
+    /* ===== ESTILOS DE IMPRESIÓN ===== */
+    @media print {
+      /* Ocultar todo lo que NO debe aparecer en la impresión */
+      .nav-menu,
+      .card-form-modern,
+      .btn-generar,
+      .btn-imprimir,
+      .header-modern .logo-area h1,
+      .footer-text,
+      .module-header,
+      /* Ocultar la tabla de proyección de ahorros */
+      .financing-table,
+      /* Ocultar el cuadro de detalles del cálculo */
+      .info-box {
+        display: none !important;
+      }
+      
+      /* Mostrar solo el calendario de pagos */
+      body {
+        background: white;
+        padding: 0;
+        margin: 0;
+      }
+      
+      .app-wrapper {
+        max-width: 100%;
+        padding: 0;
+        margin: 0;
+      }
+      
+      .module.active-module {
+        display: block !important;
+      }
+      
+      #areaCompartirAhorros {
+        box-shadow: none;
+        border-radius: 0;
+      }
+      
+      .table-container {
+        padding: 0;
+        margin: 0;
+      }
+      
+      /* Asegurar que el calendario se vea bien */
+      .tabla-calendario {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 0;
+        font-size: 11px;
+      }
+      
+      .tabla-calendario th {
+        background: #10436f !important;
+        color: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      
+      .tabla-calendario td {
+        border: 1px solid #000;
+        padding: 6px;
+      }
+      
+      .tabla-calendario tr:nth-child(even) {
+        background: #f0f0f0 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      
+      /* Título del calendario */
+      h4 {
+        display: block !important;
+        text-align: center;
+        font-size: 16px;
+        margin-bottom: 15px;
+        color: #0f4c81 !important;
+      }
+    }
+
+    @media (max-width: 780px) {
+      body { padding: 1rem; }
+      .financing-table th, .financing-table td { padding: 0.75rem 0.65rem; font-size: 0.75rem; }
+      .card-form-modern { margin: 1rem 1.2rem; padding: 1.2rem; }
+      .table-container { padding: 0 1.2rem 1.2rem 1.2rem; }
+      .header-modern h1 { font-size: 1.3rem; }
+      .logo { width: 46px; }
+      .nav-btn { padding: 0.6rem 1.2rem; font-size: 0.85rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-wrapper">
+  <!-- Menú de navegación -->
+  <div class="nav-menu">
+    <button class="nav-btn active" data-module="creditos">🏦 Cotizador de Créditos</button>
+    <button class="nav-btn" data-module="ahorros">💰 Cotizador de Ahorros</button>
+  </div>
+
+  <!-- Módulo de CRÉDITOS -->
+  <div id="module-creditos" class="module active-module">
+    <div id="areaCompartirCreditos">
+      <div class="header-modern">
+        <div class="logo-area">
+          <img src="logo.png" class="logo" alt="Logo San Gaspar" onerror="this.src='https://placehold.co/60x60?text=SG';">
+          <h1>COTIZADOR SG - CRÉDITOS</h1>
+        </div>
+      </div>
+
+      <div class="card-form-modern">
+        <div class="form-row">
+          <div class="input-group">
+            <label>💰 MONTO A FINANCIAR</label>
+            <input type="text" id="montoCredito" class="field-modern" placeholder="Ej: 10,000" inputmode="decimal" value="">
+          </div>
+          <div class="input-group">
+            <label>📊 TASA DE INTERÉS (MENSUAL)</label>
+            <select id="tasaCredito" class="select-modern">
+              <option value="24">2.00% PRINCIPAL</option>
+              <option value="20">1.67% DEPOSITARIA</option>
+              <option value="20">1.67% MASVI</option>
+              <option value="27.60">2.30% INMEDIATO</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="financing-table" id="tablaCreditos">
+          <thead><tr><th>PLAZO</th><th>CUOTA MENSUAL</th><th>INTERÉS TOTAL</th><th>TOTAL A PAGAR</th></tr></thead>
+          <tbody id="tablaBodyCreditos"><tr><td colspan="4" style="text-align:center; padding: 2rem;">💰 Ingrese un monto para ver las opciones</td></tr></tbody>
+        </table>
+      </div>
+      <div class="footer-text">COTIZADOR SG · Tasas referenciales · Sujeto a aprobación crediticia</div>
+    </div>
+  </div>
+
+  <!-- Módulo de AHORROS -->
+  <div id="module-ahorros" class="module">
+    <div id="areaCompartirAhorros">
+      <div class="header-modern">
+        <div class="logo-area">
+          <img src="logo.png" class="logo" alt="Logo San Gaspar" onerror="this.src='https://placehold.co/60x60?text=SG';">
+          <h1>COTIZADOR SG - AHORROS</h1>
+        </div>
+      </div>
+
+      <div class="card-form-modern card-form-ahorros">
+        <div class="form-row">
+          <div class="input-group">
+            <label>🏦 TIPO DE AHORRO</label>
+            <select id="productoAhorro" class="select-modern">
+              <option value="">Seleccione un producto...</option>
+              <option value="corriente">Ahorro Corriente (6% anual)</option>
+              <option value="infanto">Ahorro Infanto Juvenil (5% anual)</option>
+              <option value="plazofijo">Ahorro a Plazo Fijo</option>
+              <option value="plazofijo_pref">Ahorro a Plazo Fijo Preferencial</option>
+              <option value="inversion_f1">Inversiones entre Cooperativas F.I</option>
+              <option value="inversion_f2">Inversiones entre Cooperativas F.II</option>
+            </select>
+          </div>
+          <div class="input-group" id="montoGroup">
+            <label>💰 MONTO A INVERTIR</label>
+            <input type="text" id="montoAhorro" class="field-modern" placeholder="Ej: 10,000" inputmode="decimal" value="">
+          </div>
+          <div class="input-group" id="plazoGroup" style="display:none;">
+            <label>⏱️ PLAZO (MESES)</label>
+            <select id="plazoAhorro" class="select-modern">
+              <option value="6">6 MESES</option>
+              <option value="12">12 MESES</option>
+              <option value="24">24 MESES</option>
+            </select>
+          </div>
+          <div class="input-group" id="frecuenciaGroup" style="display:none;">
+            <label>📅 MODALIDAD</label>
+            <select id="frecuenciaAhorro" class="select-modern">
+              <option value="mensual">Mensual</option>
+              <option value="trimestral">Trimestral</option>
+              <option value="semestral">Semestral</option>
+              <option value="anual">Anual</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row" id="fechasGroup" style="display:none;">
+          <div class="input-group">
+            <label>📅 FECHA INICIO</label>
+            <input type="date" id="fechaInicioAhorro" class="field-modern">
+          </div>
+          <div class="input-group">
+            <label>📅 FECHA FINAL</label>
+            <input type="date" id="fechaFinAhorro" class="field-modern">
+          </div>
+        </div>
+        <div style="margin-top: 1rem;">
+          <button id="btnCalcularAhorro" class="btn-generar">🧮 Generar Cálculos</button>
+        </div>
+      </div>
+
+      <div id="areaImprimir">
+        <div class="table-container" id="resultadosAhorro" style="display:none;">
+          <h3 style="color: #0f4c81; margin-bottom: 12px; text-align: center;">📊 Proyección de Ahorros</h3>
+          <table class="financing-table" id="tablaAhorros">
+            <thead><tr><th>PLAZO</th><th>MONTO FINAL</th><th>INTERÉS GANADO</th><th>RENDIMIENTO</th></tr></thead>
+            <tbody id="tablaBodyAhorros"></tbody>
+          </table>
+          <div id="tablaCalendarioContainer"></div>
+          <div id="infoBoxAhorro" class="info-box"></div>
+          <button id="btnImprimirAhorro" class="btn-imprimir">🖨️ Imprimir Cotización</button>
+        </div>
+      </div>
+
+      <div class="footer-text">COTIZADOR SG · Rendimientos estimados · ISR 10% aplicado</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ==================== CONFIGURACIÓN DE PRODUCTOS ====================
+  const productosAhorro = {
+    corriente: { tasa: 6, min: 100, requiereFechas: true, nombre: "Ahorro Corriente" },
+    infanto: { tasa: 5, min: 100, requiereFechas: true, nombre: "Infanto Juvenil" },
+    plazofijo: {
+      min: 1000,
+      requiereFechas: false,
+      nombre: "Plazo Fijo",
+      rangos: [
+        { desde: 1000, hasta: 99999.99, tasas: { 6: 12, 12: 14, 24: 'NA' } },
+        { desde: 100000, hasta: 1999999.99, tasas: { 6: 14, 12: 14, 24: 15 } },
+        { desde: 2000000, hasta: Infinity, tasas: { 6: 14, 12: 15, 24: 16 } }
+      ]
+    },
+    plazofijo_pref: {
+      min: 50000,
+      requiereFechas: false,
+      nombre: "Plazo Fijo Preferencial",
+      requiereTabla: true,
+      rangos: [
+        { desde: 50000, hasta: 99999.99, tasas: { 6: 11, 12: 13, 24: 'NA' } },
+        { desde: 100000, hasta: 1999999.99, tasas: { 6: 12, 12: 13, 24: 14 } },
+        { desde: 2000000, hasta: Infinity, tasas: { 6: 13, 12: 14, 24: 15 } }
+      ],
+      frecuencias: ['mensual', 'trimestral', 'semestral', 'anual']
+    },
+    inversion_f1: { min: 1000000, tasa: 10.5, requiereFechas: false, nombre: "Inversiones F.I" },
+    inversion_f2: { 
+      min: 1000000, 
+      tasa: 10, 
+      requiereFechas: false, 
+      nombre: "Inversiones F.II",
+      requiereTabla: true,
+      frecuencias: ['mensual', 'trimestral', 'semestral']
+    }
+  };
+
+  // ==================== FUNCIONES UTILITARIAS ====================
+  function formatMoney(valor) {
+    if (isNaN(valor) || valor === null) return "Q 0.00";
+    return "Q " + valor.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
+  function cleanNumber(value) {
+    if (!value || value === "") return 0;
+    let limpio = String(value).replace(/Q/gi, '').replace(/,/g, '').trim();
+    let numero = parseFloat(limpio);
+    return isNaN(numero) ? 0 : numero;
+  }
+
+  function diferenciaDias(f1, f2) {
+    return Math.ceil(Math.abs(f2 - f1) / (1000 * 60 * 60 * 24));
+  }
+
+  function agregarMeses(fecha, meses) {
+    const nueva = new Date(fecha);
+    nueva.setMonth(nueva.getMonth() + meses);
+    return nueva;
+  }
+
+  function formatearFecha(fecha) {
+    return fecha.toLocaleDateString('es-GT', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  function validarMontoPlazo(producto, monto, plazo) {
+    const config = productosAhorro[producto];
+    if (!config.rangos) return { valido: true, tasa: config.tasa };
+    
+    const rango = config.rangos.find(r => monto >= r.desde && monto <= r.hasta);
+    if (!rango) return { valido: false, msg: `El monto ${formatMoney(monto)} no aplica.` };
+    const tasa = rango.tasas[plazo];
+    if (!tasa || tasa === 'NA') return { valido: false, msg: `Para ${formatMoney(monto)}, el plazo ${plazo} meses no está disponible.` };
+    return { valido: true, tasa: tasa };
+  }
+
+  // ==================== COTIZADOR DE CRÉDITOS ====================
+  const plazosMeses = [12, 18, 24, 36, 48, 60, 72, 84, 96, 108, 120];
+
+  function calcularCuotaMensual(monto, tasaAnualPorcentaje, meses) {
+    if (monto <= 0 || meses <= 0) return 0;
+    const tasaMensual = (tasaAnualPorcentaje / 100) / 12;
+    if (tasaMensual === 0) return monto / meses;
+    const factor = Math.pow(1 + tasaMensual, meses);
+    return monto * (tasaMensual * factor) / (factor - 1);
+  }
+
+  function renderizarTablaCreditos() {
+    const montoRaw = cleanNumber(document.getElementById("montoCredito").value);
+    const tbody = document.getElementById("tablaBodyCreditos");
+    
+    if (montoRaw === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 2rem;">💰 Ingrese un monto para ver las opciones</td></tr>`;
+      return;
+    }
+
+    const tasa = parseFloat(document.getElementById("tasaCredito").value);
+    let filasHtml = "";
+    for (let meses of plazosMeses) {
+      const cuota = calcularCuotaMensual(montoRaw, tasa, meses);
+      const totalPagar = cuota * meses;
+      const interesTotal = totalPagar - montoRaw;
+      filasHtml += `<tr>
+        <td class="col-plazo">${meses} MESES</td>
+        <td class="col-cuota">${formatMoney(cuota)}</td>
+        <td class="col-interes">${formatMoney(interesTotal)}</td>
+        <td class="col-total">${formatMoney(totalPagar)}</td>
+      </tr>`;
+    }
+    tbody.innerHTML = filasHtml;
+  }
+
+  // ==================== COTIZADOR DE AHORROS ====================
+  let ultimoResultado = null;
+  let ultimoProducto = null;
+
+  function generarTablaCalendario(r, producto) {
+    const config = productosAhorro[producto];
+    const frecuencias = { 'mensual': 1, 'trimestral': 3, 'semestral': 6, 'anual': 12 };
+    const per = frecuencias[r.frecuencia] || 12;
+    const totalPer = Math.floor(r.plazo / per);
+    const brutoPer = r.bruto / totalPer;
+    const isrPer = r.isr / totalPer;
+    const netoPer = r.neto / totalPer;
+    
+    let html = `<h4 style="margin-top: 20px; color: #0f4c81; text-align: center;">📅 Calendario de Pagos - ${config.nombre}</h4>
+    <table class="tabla-calendario">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Fecha</th>
+          <th>Interés Bruto</th>
+          <th>ISR (10%)</th>
+          <th>Interés Neto</th>
+        </tr>
+      </thead>
+      <tbody>`;
+    
+    let fecha = new Date();
+    for (let i = 1; i <= totalPer; i++) {
+      html += `<tr>
+        <td>${i}</td>
+        <td>${formatearFecha(fecha)}</td>
+        <td>${formatMoney(brutoPer)}</td>
+        <td style="color: #dc3545;">- ${formatMoney(isrPer)}</td>
+        <td style="color: #28a745; font-weight: bold;">${formatMoney(netoPer)}</td>
+      </tr>`;
+      fecha = agregarMeses(fecha, per);
+    }
+    
+    html += `</tbody>
+      <tfoot style="background: #64b5f6; font-weight: bold;">
+        <tr>
+          <td colspan="2" style="text-align: center;"><strong>TOTALES</strong></td>
+          <td><strong>${formatMoney(r.bruto)}</strong></td>
+          <td><strong>- ${formatMoney(r.isr)}</strong></td>
+          <td><strong>${formatMoney(r.neto)}</strong></td>
+        </tr>
+      </tfoot>
+    </table>`;
+    
+    return html;
+  }
+
+  function calcularAhorro() {
+    const producto = document.getElementById('productoAhorro').value;
+    if (!producto) {
+      alert('⚠️ Seleccione un producto de ahorro.');
+      return;
+    }
+
+    const config = productosAhorro[producto];
+    const monto = cleanNumber(document.getElementById('montoAhorro').value);
+    
+    if (monto < config.min || monto === 0) {
+      alert(`⚠️ El monto mínimo es ${formatMoney(config.min)}. Ingresó ${formatMoney(monto)}.`);
+      return;
+    }
+
+    let resultado = { monto: monto };
+
+    if (producto === 'corriente' || producto === 'infanto') {
+      const fechaInicio = new Date(document.getElementById('fechaInicioAhorro').value);
+      const fechaFin = new Date(document.getElementById('fechaFinAhorro').value);
+      if (isNaN(fechaInicio) || isNaN(fechaFin) || fechaFin <= fechaInicio) {
+        alert('⚠️ Verifique las fechas.');
+        return;
+      }
+      const dias = diferenciaDias(fechaInicio, fechaFin);
+      const bruto = monto * (config.tasa / 100) * (dias / 365);
+      const isr = bruto * 0.10;
+      resultado = { ...resultado, tasa: config.tasa, dias, bruto, isr, neto: bruto - isr, total: monto + (bruto - isr) };
+      mostrarResultadoAhorro(resultado, producto);
+    } 
+    else {
+      const plazo = parseInt(document.getElementById('plazoAhorro').value);
+      const valid = validarMontoPlazo(producto, monto, plazo);
+      if (!valid.valido) { alert('⚠️ ' + valid.msg); return; }
+      
+      const tasaEncontrada = valid.tasa;
+      const bruto = monto * (tasaEncontrada / 100) * (plazo / 12);
+      const isr = bruto * 0.10;
+      const frecuencia = (config.frecuencias && document.getElementById('frecuenciaAhorro')) ? document.getElementById('frecuenciaAhorro').value : null;
+      
+      resultado = { ...resultado, plazo, tasa: tasaEncontrada, frecuencia, bruto, isr, neto: bruto - isr, total: monto + (bruto - isr) };
+      mostrarResultadoAhorro(resultado, producto);
+    }
+    
+    ultimoResultado = resultado;
+    ultimoProducto = producto;
+  }
+
+  function mostrarResultadoAhorro(r, producto) {
+    const container = document.getElementById('resultadosAhorro');
+    const tbody = document.getElementById('tablaBodyAhorros');
+    const infoBox = document.getElementById('infoBoxAhorro');
+    const calendarioContainer = document.getElementById('tablaCalendarioContainer');
+    const btnImprimir = document.getElementById('btnImprimirAhorro');
+    
+    const plazoTexto = (producto === 'corriente' || producto === 'infanto') ? r.dias + ' DÍAS' : r.plazo + ' MESES';
+    tbody.innerHTML = `<tr>
+      <td class="col-plazo-ahorro">${plazoTexto}</td>
+      <td class="col-total-ahorro">${formatMoney(r.total)}</td>
+      <td class="col-interes-ahorro">${formatMoney(r.neto)}</td>
+      <td class="col-monto-ahorro">${((r.neto / r.monto) * 100).toFixed(2)}%</td>
+    </tr>`;
+    
+    infoBox.innerHTML = `<strong>ℹ️ Detalles del cálculo:</strong><br>
+      • Producto: ${productosAhorro[producto].nombre}<br>
+      • Monto invertido: ${formatMoney(r.monto)}<br>
+      • Tasa anual: ${r.tasa}%<br>
+      • Interés bruto: ${formatMoney(r.bruto)}<br>
+      • ISR (10%): -${formatMoney(r.isr)}<br>
+      • Interés neto: ${formatMoney(r.neto)}<br>
+      • <strong>Total al vencimiento: ${formatMoney(r.total)}</strong>`;
+    
+    if (productosAhorro[producto].requiereTabla && r.frecuencia && r.plazo) {
+      calendarioContainer.innerHTML = generarTablaCalendario(r, producto);
+      btnImprimir.style.display = 'block';
+    } else {
+      calendarioContainer.innerHTML = '';
+      btnImprimir.style.display = 'none';
+    }
+    
+    container.style.display = 'block';
+  }
+
+  function imprimirAhorro() {
+    if (!ultimoResultado) {
+      alert('⚠️ Genere la cotización primero.');
+      return;
+    }
+    window.print();
+  }
+
+  // ==================== EVENTOS Y DINÁMICA DE FORMULARIO ====================
+  function actualizarCamposAhorro() {
+    const producto = document.getElementById('productoAhorro').value;
+    const plazoGroup = document.getElementById('plazoGroup');
+    const frecuenciaGroup = document.getElementById('frecuenciaGroup');
+    const fechasGroup = document.getElementById('fechasGroup');
+    const resultadosContainer = document.getElementById('resultadosAhorro');
+    const calendarioContainer = document.getElementById('tablaCalendarioContainer');
+    
+    plazoGroup.style.display = 'none';
+    frecuenciaGroup.style.display = 'none';
+    fechasGroup.style.display = 'none';
+    resultadosContainer.style.display = 'none';
+    calendarioContainer.innerHTML = '';
+    
+    if (!producto) return;
+    
+    const config = productosAhorro[producto];
+    
+    if (producto === 'corriente' || producto === 'infanto') {
+      fechasGroup.style.display = 'flex';
+      const hoy = new Date().toISOString().split('T')[0];
+      document.getElementById('fechaInicioAhorro').value = hoy;
+      const fechaFin = new Date();
+      fechaFin.setMonth(fechaFin.getMonth() + 12);
+      document.getElementById('fechaFinAhorro').value = fechaFin.toISOString().split('T')[0];
+    } else {
+      plazoGroup.style.display = 'flex';
+      if (config.frecuencias) {
+        frecuenciaGroup.style.display = 'flex';
+      }
+    }
+  }
+
+  function setupMoneyInput(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    
+    let numericValue = '';
+    input.addEventListener('input', function(e) {
+      let val = e.target.value.replace(/[^0-9.]/g, '');
+      let partes = val.split('.');
+      if (partes.length > 2) val = partes[0] + '.' + partes.slice(1).join('');
+      if (partes.length === 2 && partes[1].length > 2) val = partes[0] + '.' + partes[1].substring(0, 2);
+      numericValue = val;
+      e.target.value = val;
+    });
+    
+    input.addEventListener('blur', function(e) {
+      if (numericValue && !isNaN(parseFloat(numericValue))) {
+        let numero = parseFloat(numericValue);
+        e.target.value = formatMoney(numero);
+      } else {
+        e.target.value = '';
+        numericValue = '';
+      }
+    });
+    
+    input.addEventListener('focus', function(e) {
+      e.target.value = numericValue;
+    });
+  }
+
+  // Eventos
+  document.getElementById('montoCredito').addEventListener('input', renderizarTablaCreditos);
+  document.getElementById('montoCredito').addEventListener('blur', function() {
+    let val = cleanNumber(this.value);
+    if (val > 0) this.value = formatMoney(val);
+    renderizarTablaCreditos();
+  });
+  document.getElementById('tasaCredito').addEventListener('change', renderizarTablaCreditos);
+  
+  document.getElementById('productoAhorro').addEventListener('change', actualizarCamposAhorro);
+  document.getElementById('btnCalcularAhorro').addEventListener('click', calcularAhorro);
+  document.getElementById('btnImprimirAhorro').addEventListener('click', imprimirAhorro);
+  
+  setupMoneyInput('montoCredito');
+  setupMoneyInput('montoAhorro');
+
+  // Inicializar
+  window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('montoCredito').value = '';
+    document.getElementById('montoAhorro').value = '';
+    renderizarTablaCreditos();
+    actualizarCamposAhorro();
+  });
+
+  // Menú de navegación
+  const navBtns = document.querySelectorAll('.nav-btn');
+  const modules = document.querySelectorAll('.module');
+
+  navBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const moduleName = btn.getAttribute('data-module');
+      navBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      modules.forEach(module => module.classList.remove('active-module'));
+      document.getElementById(`module-${moduleName}`).classList.add('active-module');
+    });
+  });
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js").catch(e => console.log("SW no registrado"));
+  }
+</script>
+</body>
+</html>
