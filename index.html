@@ -13,18 +13,18 @@
       --primary-100: #dbeafe;
       --primary-200: #bfdbfe;
       --primary-300: #93c5fd;
-      --primary-400: #60a5fa;
-      --primary-500: #3b82f6;
-      --primary-600: #2563eb;
-      --primary-700: #1d4ed8;
-      --primary-800: #1e40af;
-      --primary-900: #1e3a8a;
+      --primary-400: #186dd5;
+      --primary-500: #1651b1;
+      --primary-600: #0d368d;
+      --primary-700: #0d349e;
+      --primary-800: #071645;
+      --primary-900: #05143d;
       
       /* Éxito */
       --success-50: #f0fdf4;
-      --success-500: #22c55e;
-      --success-600: #16a34a;
-      --success-700: #15803d;
+      --success-500: #197e3e;
+      --success-600: #0d5b29;
+      --success-700: #09421e;
       
       /* Advertencia */
       --warning-500: #f59e0b;
@@ -245,22 +245,6 @@
     .btn span:first-child {
       font-size: 1.3rem;
       filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
-    }
-
-    .feedback {
-      margin-top: 2rem;
-      padding: 1rem 1.5rem;
-      background: linear-gradient(135deg, var(--primary-50), white);
-      border-radius: var(--radius-lg);
-      font-size: 0.95rem;
-      text-align: center;
-      border-left: 4px solid var(--primary-500);
-      box-shadow: var(--shadow-sm);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      animation: pulse 2s infinite;
     }
 
     .footer-note {
@@ -673,7 +657,7 @@
         animation: none !important;
       }
       .card-form-modern, .btn-generar, .btn-imprimir, .footer-text, 
-      .header-modern .back-btn, .dias-calculo, .menu-container, .feedback, .footer-note {
+      .header-modern .back-btn, .dias-calculo, .menu-container, .footer-note {
         display: none !important;
       }
       .module.active-module { 
@@ -693,7 +677,6 @@
       }
     }
 
-    /* Efecto de carga suave */
     .module {
       will-change: transform, opacity;
     }
@@ -706,20 +689,11 @@
     <div class="content-wrapper">
       <div class="logo-area">
         <div class="logo-svg">
-          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="50" cy="50" r="46" fill="url(#gradCircle)" stroke="#ffffff" stroke-width="2.2" />
-            <defs>
-              <linearGradient id="gradCircle" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#1E3C72" />
-                <stop offset="100%" stop-color="#2A5298" />
-              </linearGradient>
-            </defs>
-            <circle cx="50" cy="48" r="20" fill="#F9D976" stroke="#E6B422" stroke-width="1.5" />
-            <text x="50" y="56" font-family="Arial" font-weight="bold" font-size="20" fill="#2c3e4e" text-anchor="middle">$</text>
-          </svg>
+          <!-- ✅ LOGO DEL MENÚ - Cambia "logo.png" por tu archivo real -->
+          <img src="logo.png" alt="San Gaspar" style="width: 100%; height: 100%; object-fit: contain;">
         </div>
-        <div class="logo-text">San Gaspar</div>
-        <div class="logo-sub">elige tu camino financiero</div>
+        <div class="logo-text">SAN GASPAR R.L.</div>
+        <div class="logo-sub">COOPERATIVA DE AHORRO Y CRÉDITO</div>
       </div>
 
       <div class="buttons-group">
@@ -733,12 +707,8 @@
         </button>
       </div>
 
-      <div id="feedbackArea" class="feedback">
-        <span>✨</span>
-        <span id="feedbackMessage">Selecciona una opción</span>
-      </div>
       <div class="footer-note">
-        📱 Gestión inteligente | Crédito · Ahorros
+        📱 Cotizador | Crédito · Ahorros
       </div>
     </div>
   </div>
@@ -749,7 +719,8 @@
       <button class="back-btn" onclick="mostrarMenu()">
         <span>←</span> Volver
       </button>
-      <h1>COTIZADOR SG</h1>
+      <h1>COTIZADOR DE CRÉDITOS</h1>
+      <!-- ✅ LOGO DEL HEADER - Mismo archivo o diferente según prefieras -->
       <img src="logo.png" class="logo-small" onerror="this.style.display='none';" alt="logo">
     </div>
     <div class="card-form-modern">
@@ -851,36 +822,83 @@
 </div>
 
 <script>
-  // ==================== NAVEGACIÓN ====================
+  // ==================== VARIABLES GLOBALES ====================
   const menuPrincipal = document.getElementById('menuPrincipal');
   const moduleCredito = document.getElementById('module-creditos');
   const moduleAhorro = document.getElementById('module-ahorros');
 
+  // ==================== NAVEGACIÓN CON HISTORIAL ====================
+  
+  // Función principal de navegación que actualiza el historial
+  function navegarA(vista) {
+    // Ocultar todos primero
+    menuPrincipal.style.display = 'none';
+    moduleCredito.classList.remove('active-module');
+    moduleAhorro.classList.remove('active-module');
+    
+    // Mostrar el módulo correspondiente
+    if (vista === 'credito') {
+      moduleCredito.classList.add('active-module');
+      renderizarTablaCreditos();
+    } else if (vista === 'ahorro') {
+      moduleAhorro.classList.add('active-module');
+      document.getElementById('resultadosAhorro').style.display = 'none';
+    } else {
+      // Volver al menú principal
+      menuPrincipal.style.display = 'flex';
+    }
+    
+    // Actualizar el historial del navegador
+    history.pushState({ vista: vista || 'menu' }, '', '#' + (vista || 'menu'));
+  }
+
+  // Manejar el botón ATRÁS del teléfono/navegador
+  window.addEventListener('popstate', function(event) {
+    const estado = event.state;
+    if (estado && estado.vista === 'credito') {
+      moduleCredito.classList.add('active-module');
+      moduleAhorro.classList.remove('active-module');
+      menuPrincipal.style.display = 'none';
+      renderizarTablaCreditos();
+    } else if (estado && estado.vista === 'ahorro') {
+      moduleAhorro.classList.add('active-module');
+      moduleCredito.classList.remove('active-module');
+      menuPrincipal.style.display = 'none';
+      document.getElementById('resultadosAhorro').style.display = 'none';
+    } else {
+      // Si no hay estado válido, volver al menú
+      mostrarMenu();
+    }
+  });
+
+  // Función para volver al menú (usada por el botón "Volver")
   window.mostrarMenu = function() {
     menuPrincipal.style.display = 'flex';
     moduleCredito.classList.remove('active-module');
     moduleAhorro.classList.remove('active-module');
+    // Reemplazar estado actual para evitar retroceso infinito
+    history.replaceState({ vista: 'menu' }, '', '#menu');
   }
 
+  // Funciones simplificadas para los botones
   function mostrarCredito() {
-    menuPrincipal.style.display = 'none';
-    moduleCredito.classList.add('active-module');
-    moduleAhorro.classList.remove('active-module');
-    document.getElementById('feedbackMessage').innerHTML = "💳 Crédito seleccionado";
-    renderizarTablaCreditos();
+    navegarA('credito');
   }
 
   function mostrarAhorro() {
-    menuPrincipal.style.display = 'none';
-    moduleAhorro.classList.add('active-module');
-    moduleCredito.classList.remove('active-module');
-    document.getElementById('feedbackMessage').innerHTML = "🏦 Ahorros seleccionado";
-    // Limpiar resultados al entrar
-    document.getElementById('resultadosAhorro').style.display = 'none';
+    navegarA('ahorro');
   }
 
-  document.getElementById('btnCredito').addEventListener('click', mostrarCredito);
-  document.getElementById('btnAhorros').addEventListener('click', mostrarAhorro);
+  // Eventos de los botones principales
+  document.getElementById('btnCredito').addEventListener('click', function(e) {
+    e.preventDefault();
+    mostrarCredito();
+  });
+  
+  document.getElementById('btnAhorros').addEventListener('click', function(e) {
+    e.preventDefault();
+    mostrarAhorro();
+  });
 
   // ==================== CRÉDITOS ====================
   const plazosMeses = [12, 18, 24, 36, 48, 60, 72, 84, 96, 108, 120];
@@ -1095,7 +1113,6 @@
     const diasContainer = document.getElementById('diasCalculoContainer');
     const config = productosAhorro[producto];
     
-    // Mostrar días de cálculo
     if (config.muestraDias && r.dias) {
       const fechaInicio = document.getElementById('fechaInicioAhorro').value;
       const fechaFin = document.getElementById('fechaFinAhorro').value;
@@ -1105,14 +1122,12 @@
       diasContainer.style.display = 'none';
     }
     
-    // Calendario
     if (config.requiereTabla && r.frecuencia && r.plazo) {
       calendarioContainer.innerHTML = generarTablaCalendario(r, producto);
     } else {
       calendarioContainer.innerHTML = '';
     }
     
-    // Botón imprimir - solo para productos específicos
     btnImprimir.style.display = config.muestraImprimir === true ? 'block' : 'none';
     
     infoBox.innerHTML = `<strong>ℹ️ Detalles del cálculo:</strong><br>
@@ -1155,10 +1170,8 @@
     
     if (producto === 'corriente' || producto === 'infanto') {
       fechasGroup.style.display = 'flex';
-      // Fecha inicio automática con la fecha actual (hoy)
       const hoy = new Date().toISOString().split('T')[0];
       document.getElementById('fechaInicioAhorro').value = hoy;
-      // Fecha final en blanco para que el usuario la seleccione
       document.getElementById('fechaFinAhorro').value = '';
     } else {
       plazoGroup.style.display = 'flex';
@@ -1204,8 +1217,11 @@
   
   setupMoneyInput('montoAhorro');
 
-  // Inicializar
+  // Inicializar con historial
   window.addEventListener('DOMContentLoaded', () => {
+    // Estado inicial del historial
+    history.replaceState({ vista: 'menu' }, '', '#menu');
+    
     document.getElementById('monto').value = '';
     document.getElementById('montoAhorro').value = '';
     renderizarTablaCreditos();
@@ -1213,6 +1229,7 @@
     mostrarMenu();
   });
 
+  // Service Worker (opcional para PWA)
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.getRegistrations().then(function(registrations) {
       for(let registration of registrations) registration.unregister();
