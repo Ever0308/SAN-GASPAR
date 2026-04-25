@@ -923,7 +923,7 @@
       </table>
     `;
     
-    /*infoBox.innerHTML = `<strong>ℹ️ Ahorro Programado - Capitalización Mensual</strong><br>
+    infoBox.innerHTML = `<strong>ℹ️ Ahorro Programado - Capitalización Mensual</strong><br>
       • Cuota: ${formatMoney(r.cuota)}<br>
       • Plazo: ${r.plazo} meses<br>
       • Tasa: ${r.tasa}% anual<br>
@@ -931,7 +931,7 @@
     
     container.style.display = 'block';
     infoBox.innerHTML = html + infoBox.innerHTML;
-  }*/
+  }
 
   function mostrarResultadoAhorro(r, prod) {
     const container = document.getElementById('resultadosAhorro');
