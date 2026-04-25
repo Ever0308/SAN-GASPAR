@@ -518,7 +518,7 @@
             <option value="">Seleccione...</option>
             <option value="corriente">A. Corriente (6%)</option>
             <option value="infanto">A. Infanto (5%)</option>
-            <option value="programado">Ahorro Programado (Capitalizable)</option>
+            <option value="programado">A. Programado</option>
             <option value="plazofijo">Plazo Fijo</option>
             <option value="plazofijo_pref">PF Preferencial</option>
             <option value="inversion_f1">Inversiones F.I</option>
@@ -578,7 +578,7 @@
       <div id="infoBoxAhorro" class="info-box"></div>
       <button id="btnImprimirAhorro" class="btn-imprimir" style="display:none">🖨️ Imprimir</button>
     </div>
-    <div class="footer-text">COTIZADOR SG · ISR 10%</div>
+    <div class="footer-text">COTIZADOR SG · EC</div>
   </div>
 
   <!-- 🚨 MODAL DE ALERTA PERSONALIZADO -->
@@ -703,7 +703,7 @@
       const total = cuota * m;
       const interes = total - monto;
       html += `<tr>
-        <td class="col-plazo">${m}M</td>
+        <td class="col-plazo">${m} MM</td>
         <td class="col-cuota">${formatMoney(cuota)}</td>
         <td class="col-interes">${formatMoney(interes)}</td>
         <td class="col-total">${formatMoney(total)}</td>
@@ -923,7 +923,7 @@
       </table>
     `;
     
-    infoBox.innerHTML = `<strong>ℹ️ Ahorro Programado - Capitalización Mensual</strong><br>
+    /*infoBox.innerHTML = `<strong>ℹ️ Ahorro Programado - Capitalización Mensual</strong><br>
       • Cuota: ${formatMoney(r.cuota)}<br>
       • Plazo: ${r.plazo} meses<br>
       • Tasa: ${r.tasa}% anual<br>
@@ -931,7 +931,7 @@
     
     container.style.display = 'block';
     infoBox.innerHTML = html + infoBox.innerHTML;
-  }
+  }*/
 
   function mostrarResultadoAhorro(r, prod) {
     const container = document.getElementById('resultadosAhorro');
