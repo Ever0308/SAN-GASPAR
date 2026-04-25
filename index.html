@@ -518,13 +518,18 @@
             <option value="">Seleccione...</option>
             <option value="corriente">A. Corriente (6%)</option>
             <option value="infanto">A. Infanto (5%)</option>
+            <option value="programado">Ahorro Programado (Capitalizable)</option>
             <option value="plazofijo">Plazo Fijo</option>
             <option value="plazofijo_pref">PF Preferencial</option>
             <option value="inversion_f1">Inversiones F.I</option>
             <option value="inversion_f2">Inversiones F.II</option>
           </select>
         </div>
-        <div class="input-group">
+        <div class="input-group" id="cuotaGroup" style="display:none">
+          <label>💰 CUOTA MENSUAL</label>
+          <input type="text" id="cuotaMensual" class="field-modern" placeholder="200" inputmode="decimal">
+        </div>
+        <div class="input-group" id="montoGroup">
           <label>💰 MONTO</label>
           <input type="text" id="montoAhorro" class="field-modern" placeholder="10,000" inputmode="decimal">
         </div>
@@ -534,6 +539,15 @@
             <option value="6">6 MESES</option>
             <option value="12">12 MESES</option>
             <option value="24">24 MESES</option>
+          </select>
+        </div>
+        <div class="input-group" id="plazoProgramadoGroup" style="display:none">
+          <label>⏱️ PLAZO (MESES)</label>
+          <select id="plazoProgramado" class="select-modern">
+            <option value="12">12 MESES (8% anual)</option>
+            <option value="24">24 MESES (8.5% anual)</option>
+            <option value="36">36 MESES (9% anual)</option>
+            <option value="48">48 MESES (10% anual)</option>
           </select>
         </div>
         <div class="input-group" id="frecuenciaGroup" style="display:none">
@@ -711,6 +725,11 @@
   const productosAhorro = {
     corriente: { tasa: 6, min: 100, requiereFechas: true, nombre: "Ahorro Corriente", muestraDias: true },
     infanto: { tasa: 5, min: 100, requiereFechas: true, nombre: "Infanto Juvenil", muestraDias: true },
+    programado: { 
+      min: 200, requiereFechas: false, nombre: "Ahorro Programado", 
+      requiereTabla: false, muestraImprimir: false, esProgramado: true,
+      tasas: { 12: 8, 24: 8.5, 36: 9, 48: 10 }
+    },
     plazofijo: {
       min: 1000, requiereFechas: false, nombre: "Plazo Fijo", muestraImprimir: false,
       rangos: [
@@ -757,8 +776,46 @@
     return { valido: true, tasa };
   }
 
+  function calcularProgramado(cuotaMensual, plazoMeses) {
+    const tasas = productosAhorro.programado.tasas;
+    const tasaAnual = tasas[plazoMeses] / 100;
+    const tasaMensual = tasaAnual / 12;
+    
+    let saldo = 0;
+    let totalAportado = 0;
+    let interesBrutoTotal = 0;
+    let isrTotal = 0;
+    
+    for (let mes = 1; mes <= plazoMeses; mes++) {
+      saldo += cuotaMensual;
+      totalAportado += cuotaMensual;
+      
+      const interesMes = saldo * tasaMensual;
+      interesBrutoTotal += interesMes;
+      
+      const isrMes = interesMes * 0.10;
+      isrTotal += isrMes;
+      
+      const interesNetoMes = interesMes - isrMes;
+      saldo += interesNetoMes;
+    }
+    
+    return {
+      aportado: totalAportado,
+      bruto: interesBrutoTotal,
+      isr: isrTotal,
+      neto: interesBrutoTotal - isrTotal,
+      total: saldo,
+      tasa: tasaAnual * 100,
+      plazo: plazoMeses,
+      cuota: cuotaMensual
+    };
+  }
+
   function generarTablaCalendario(r, prod) {
     const cfg = productosAhorro[prod];
+    if (!cfg.requiereTabla || !r.frecuencia || !r.plazo) return '';
+    
     const freq = { 'mensual':1, 'trimestral':3, 'semestral':6, 'anual':12 };
     const per = freq[r.frecuencia] || 12;
     const total = Math.floor(r.plazo / per);
@@ -792,6 +849,25 @@
     const prod = document.getElementById('productoAhorro').value;
     if (!prod) { mostrarAlerta('Seleccione un producto', 'warning'); return; }
     const cfg = productosAhorro[prod];
+    
+    // Ahorro Programado
+    if (prod === 'programado') {
+      const cuota = cleanNumber(document.getElementById('cuotaMensual').value);
+      const plazo = parseInt(document.getElementById('plazoProgramado').value);
+      
+      if (cuota < cfg.min || cuota === 0) { 
+        mostrarAlerta(`La cuota mínima es ${formatMoney(cfg.min)}`, 'warning'); 
+        return; 
+      }
+      
+      const resultado = calcularProgramado(cuota, plazo);
+      ultimoResultado = resultado;
+      ultimoProducto = prod;
+      mostrarResultadoProgramado(resultado);
+      return;
+    }
+    
+    // Otros productos
     const monto = cleanNumber(document.getElementById('montoAhorro').value);
     if (monto < cfg.min || monto === 0) { mostrarAlerta(`Mínimo: ${formatMoney(cfg.min)}`, 'warning'); return; }
 
@@ -818,6 +894,43 @@
     }
     ultimoResultado = res;
     ultimoProducto = prod;
+  }
+
+  function mostrarResultadoProgramado(r) {
+    const container = document.getElementById('resultadosAhorro');
+    const calContainer = document.getElementById('tablaCalendarioContainer');
+    const infoBox = document.getElementById('infoBoxAhorro');
+    const btnImprimir = document.getElementById('btnImprimirAhorro');
+    const diasContainer = document.getElementById('diasCalculoContainer');
+    
+    diasContainer.style.display = 'none';
+    calContainer.innerHTML = '';
+    btnImprimir.style.display = 'none';
+    
+    const html = `
+      <h4 style="margin:0.5rem 0;text-align:center;font-weight:700;color:var(--primary-700)">📊 Ahorro Programado</h4>
+      <table class="financing-table" style="margin-top:0.5rem">
+        <tbody>
+          <tr><td class="label" style="text-align:left">Cuota Mensual</td><td style="text-align:right;font-weight:700">${formatMoney(r.cuota)}</td></tr>
+          <tr><td class="label" style="text-align:left">Plazo</td><td style="text-align:right;font-weight:700">${r.plazo} MESES</td></tr>
+          <tr><td class="label" style="text-align:left">Tasa Anual</td><td style="text-align:right;font-weight:700">${r.tasa}%</td></tr>
+          <tr><td class="label" style="text-align:left">Total Aportado</td><td style="text-align:right">${formatMoney(r.aportado)}</td></tr>
+          <tr><td class="label" style="text-align:left">Intereses Brutos</td><td style="text-align:right">${formatMoney(r.bruto)}</td></tr>
+          <tr><td class="label" style="text-align:left">ISR (10%)</td><td style="text-align:right;color:#dc2626">- ${formatMoney(r.isr)}</td></tr>
+          <tr><td class="label" style="text-align:left;font-weight:700">Intereses Netos</td><td style="text-align:right;color:#16a34a;font-weight:700">${formatMoney(r.neto)}</td></tr>
+          <tr style="background:linear-gradient(135deg, #1e40af, #1e3a8a);color:white"><td class="label" style="text-align:left;font-weight:800">MONTO FINAL</td><td style="text-align:right;font-weight:800">${formatMoney(r.total)}</td></tr>
+        </tbody>
+      </table>
+    `;
+    
+    infoBox.innerHTML = `<strong>ℹ️ Ahorro Programado - Capitalización Mensual</strong><br>
+      • Cuota: ${formatMoney(r.cuota)}<br>
+      • Plazo: ${r.plazo} meses<br>
+      • Tasa: ${r.tasa}% anual<br>
+      • ISR: 10% sobre intereses generados cada mes`;
+    
+    container.style.display = 'block';
+    infoBox.innerHTML = html + infoBox.innerHTML;
   }
 
   function mostrarResultadoAhorro(r, prod) {
@@ -861,13 +974,22 @@
   function actualizarCamposAhorro() {
     const prod = document.getElementById('productoAhorro').value;
     document.getElementById('plazoGroup').style.display = 'none';
+    document.getElementById('plazoProgramadoGroup').style.display = 'none';
     document.getElementById('frecuenciaGroup').style.display = 'none';
     document.getElementById('fechasGroup').style.display = 'none';
+    document.getElementById('cuotaGroup').style.display = 'none';
+    document.getElementById('montoGroup').style.display = 'flex';
     document.getElementById('resultadosAhorro').style.display = 'none';
     document.getElementById('tablaCalendarioContainer').innerHTML = '';
+    
     if (!prod) return;
     const cfg = productosAhorro[prod];
-    if (prod === 'corriente' || prod === 'infanto') {
+    
+    if (prod === 'programado') {
+      document.getElementById('cuotaGroup').style.display = 'flex';
+      document.getElementById('montoGroup').style.display = 'none';
+      document.getElementById('plazoProgramadoGroup').style.display = 'flex';
+    } else if (prod === 'corriente' || prod === 'infanto') {
       document.getElementById('fechasGroup').style.display = 'flex';
       document.getElementById('fechaInicioAhorro').value = new Date().toISOString().split('T')[0];
       document.getElementById('fechaFinAhorro').value = '';
@@ -899,11 +1021,13 @@
   document.getElementById('btnGenerarAhorro').onclick = calcularAhorro;
   document.getElementById('btnImprimirAhorro').onclick = imprimirAhorro;
   setupMoneyInput('montoAhorro');
+  setupMoneyInput('cuotaMensual');
 
   window.addEventListener('DOMContentLoaded', () => {
     history.replaceState({ vista: 'menu' }, '', '#menu');
     document.getElementById('monto').value = '';
     document.getElementById('montoAhorro').value = '';
+    document.getElementById('cuotaMensual').value = '';
     renderizarTablaCreditos();
     actualizarCamposAhorro();
     mostrarMenu();
